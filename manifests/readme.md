@@ -43,6 +43,8 @@ Based on sample templates here https://severalnines.com/database-blog/using-kube
 
 Added below manifests to configure and deploy the Go app.
 
+These still use hardcoded references to an Azure Kubernetes Service that need parameterizing in an automated pipeline.
+
 - app-service.yml
 - app-deployment.yml
 - app-updatedb.yml (once off instance to recreate database and seed data)
