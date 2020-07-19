@@ -12,6 +12,7 @@ variables:
 
   # Container registry service connection established during pipeline creation
   dockerRegistryServiceConnection: 'e8d8f4fe-9b9d-4e27-9226-5315aa008ac8'
+  kubernetesServiceConnection: 'aksTechTest3-default'
   imageRepository: 'techtestapp'
   containerRegistry: 'acrtechtest3.azurecr.io'
   dockerfilePath: '**/Dockerfile'
@@ -64,6 +65,7 @@ stages:
               action: createSecret
               secretName: $(imagePullSecret)
               dockerRegistryEndpoint: $(dockerRegistryServiceConnection)
+              kubernetesServiceConnection: $(kubernetesServiceConnection)
               
           - task: KubernetesManifest@0
             displayName: Deploy to Kubernetes cluster
