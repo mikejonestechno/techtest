@@ -12,11 +12,11 @@ Ideally I would collaborate with the deveopment team to extend the existing Circ
 
 A GitHub account, an Azure account, and an Azure DevOps account.
 
-PowerShell Core and the Az module for initial setup.
-
 ## Initial Setup
 
-I used the following PowerShell to create an empty Resource Group with an empty Container Registry and Kubernetes Service.
+I used PowerShell Core and the Az module for initial setup. 
+
+The following PowerShell creates an empty Resource Group with an empty Container Registry and Kubernetes Service.
 
 ``` PowerShell
 Connect-AzAccount
@@ -30,8 +30,13 @@ I logged in to Azure DevOps and added a new pipeline for this repo.
 
 Azure Pipeline automatically built the app container and published it to the container registry.
 
-Kubenetes manifest files were automatically generated but the kubenetes deployment failed and needs debugging.
+The original manifests that were automatically generated when the Github repo was added to an Azure Pipeline failed because they default to an out of date schema version :(
 
 ```
 Error: no matches for kind "Deployment" in version "apps/v1beta1"
 ```
+
+## Updated Kubenetes Manifests
+
+I replaced the app .yml files on separate pull requests to include the required postgres container and the 'serve' or 'updatedb' arguments.
+

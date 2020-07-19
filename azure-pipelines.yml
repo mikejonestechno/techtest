@@ -12,7 +12,7 @@ variables:
 
   # Container registry service connection established during pipeline creation
   dockerRegistryServiceConnection: 'e8d8f4fe-9b9d-4e27-9226-5315aa008ac8'
-  imageRepository: 'mikejonestechnotechtest'
+  imageRepository: 'techtestapp'
   containerRegistry: 'acrtechtest3.azurecr.io'
   dockerfilePath: '**/Dockerfile'
   tag: '$(Build.BuildId)'
@@ -53,7 +53,7 @@ stages:
     displayName: Deploy
     pool:
       vmImage: $(vmImageName)
-    environment: 'mikejonestechnotechtest.default'
+    environment: 'techtest.default'
     strategy:
       runOnce:
         deploy:
@@ -70,8 +70,8 @@ stages:
             inputs:
               action: deploy
               manifests: |
-                $(Pipeline.Workspace)/manifests/deployment.yml
-                $(Pipeline.Workspace)/manifests/service.yml
+                $(Pipeline.Workspace)/manifests/app-deployment.yml
+                $(Pipeline.Workspace)/manifests/app-service.yml
               imagePullSecrets: |
                 $(imagePullSecret)
               containers: |
