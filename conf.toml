@@ -3,5 +3,5 @@
 "DbName" = "app"
 "DbPort" = "5432"
 "DbHost" = "postgres"
-"ListenHost" = "localhost"
+"ListenHost" = "0.0.0.0"
 "ListenPort" = "3000"
