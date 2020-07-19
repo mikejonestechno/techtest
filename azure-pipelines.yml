@@ -11,8 +11,8 @@ resources:
 variables:
 
   # Container registry service connection established during pipeline creation
-  dockerRegistryServiceConnection: 'e8d8f4fe-9b9d-4e27-9226-5315aa008ac8'
-  kubernetesServiceConnection: 'aksTechTest3-default'
+  dockerRegistryServiceConnection: 'acrTechTest3b' #'e8d8f4fe-9b9d-4e27-9226-5315aa008ac8'
+  kubernetesServiceConnection: 'techtest-aksTechTest3-test-1595160000983'
   imageRepository: 'techtestapp'
   containerRegistry: 'acrtechtest3.azurecr.io'
   dockerfilePath: '**/Dockerfile'
