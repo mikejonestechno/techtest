@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: techtestapp
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: techtestapp
+  template:
+    metadata:
+      labels:
+        app: techtestapp
+    spec:
+      containers:
+        - name: techtestapp
+          image: acrtechtest3.azurecr.io/techtestapp:0.6.0
+          args:
+            - serve
+          ports:
+            - containerPort: 3000
+
