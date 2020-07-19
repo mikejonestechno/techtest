@@ -53,7 +53,7 @@ stages:
     displayName: Deploy
     pool:
       vmImage: $(vmImageName)
-    environment: 'techtest.default'
+    environment: 'techtest-test'
     strategy:
       runOnce:
         deploy:
