@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: techtestapp
-          image: acrtechtest3.azurecr.io/techtestapp:0.6.0
+          image: acru7diizs6a35q6.azurecr.io/techtestapp:0.6.0
           args:
             - serve
           ports:

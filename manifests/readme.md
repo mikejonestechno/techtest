@@ -27,10 +27,6 @@ The cluster will contain two pods so that the database and app can be scaled ind
 - App Pod
 
 
-
-
-
-
 ## Postgres Pod
 
 Added below manifests to configure and deploy postgres. Initially hardcoded password but should be replaced with a secret later.
@@ -53,11 +49,41 @@ Added below manifests to configure and deploy the Go app.
 
 ---
 
+## Getting Started
+
+### Requirements
+
+Docker and Kubenetes cli
+Azure Container Registry with the app image
+Update app-deployment.yml with the uri for the app image 
+
+``` bash
+kubectl apply -f postgres-config.yml
+kubectl apply -f postgres-volumes.yml
+kubectl apply -f postgres-service.yml
+kubectl apply -f postgres-deployment.yml
+kubectl apply -f app-service.yml
+kubectl apply -f app-deployment.yml
+kubectl apply -f app-updatedb.yml
+```
+
+> Note: Postgres needs to be up and running before app-updatedb.
+
+```
+kubectl describe service techtestapp
+```
+
+The `LoadBalancer Ingress` property lists the external IP address.
+
+Open the external `<ip>:3000` in a browser 
+
 #### Debugging
 
 Connect to the Azure Kubenetes service and use kubectl to manually deploy and debug.
 
-```
+If you have PowerShell Core installed you can import the Azure credentials into current session.
+
+``` PowerShell
 Import-AzAksCredential -ResourceGroupName <myResourceGroup> -Name <myAKSCluster>
 kubectl get nodes
 kubectl get pods
