@@ -80,6 +80,19 @@ stages:
                 $(Pipeline.Workspace)/manifests/postgres-deployment.yml
 
           - task: KubernetesManifest@0
+            displayName: Run UpdateDB to seed data
+            inputs:
+              action: deploy
+              kubernetesServiceConnection: $(kubernetesServiceConnection)
+              namespace: test
+              manifests: |
+                $(Pipeline.Workspace)/manifests/app-updatedb.yml
+              imagePullSecrets: |
+                $(imagePullSecret)
+              containers: |
+                $(containerRegistry)/$(imageRepository):$(tag)
+
+          - task: KubernetesManifest@0
             displayName: Deploy App to Kubernetes cluster
             inputs:
               action: deploy

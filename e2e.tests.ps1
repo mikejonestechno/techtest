@@ -15,8 +15,10 @@ Describing TestTechApp with database seed data
 
 Import-Module Pester
 
-$apphost='localhost'
-$apphost='13.75.252.87'
+BeforeAll {
+    $apphost='localhost'
+    $apphost='13.75.252.87'  
+}
 
 Describe 'TestTechApp with database seed data' {
     It "healthcheck should be 'OK'" {

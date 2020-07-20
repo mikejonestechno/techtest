@@ -48,7 +48,7 @@ The automatically generated azure-pipelines.yml itself is missing the mandatory 
 
 ## AKS Storage Volumes
 
-The postgres 'local' persistent volumes need to me modified to Azure Disk or Azure Files. 
+The postgres 'local' persistent volumes were modified to Azure Disks or Azure Files. 
 
 I initially used Azure Files because Azure Disk uses Access Mode 'ReadWriteOnce' and is only available to a single pod in AKS. 
 
@@ -61,4 +61,10 @@ However I encountered issue reported below that the postgres pod is denied permi
 
 As interim solution I used Azure Disk in order to get postgres deployed, but it means the persistent volume is only available to a single pod. Will need to explore alternative options later.
 
+## Update database and seed data
 
+The app image is deployed to a temporary container to run the `-updatedb` command to create the database and seed data. 
+
+The series of steps in the pipeline will need to be reviewed later, particularly when production environment is added, to ensure production data is not wiped with future database changes! 
+
+The separation of pods could also be modified later and the development team may also want to review alternative methods to manage and maintain database changes in the future.

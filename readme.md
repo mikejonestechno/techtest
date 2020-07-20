@@ -22,13 +22,21 @@ to be updated
 
 See the [Azure Pipeline readme azure-pipelines.md](azure-pipelines.md) for more information.
 
+## Getting Started
+
+to be updated
+
+List the steps to get the solution deployed to a clean Azure subscription and clean Azure Devops project.
+
 ## Tests
 
-Use PowerShell Core to run some basic deployment tests
+After a successful deployment, I used PowerShell Core to run some basic deployment tests.
 
-Install PowerShell Core and `Install-Module -Name Pester -Scope CurrentUser`
+Install PowerShell Core and `Install-Module -Name Pester -Scope CurrentUser`.
 
-Set the $apphost variable to the IP of the app end point / load balancer
+Set the $apphost variable to the IP of the app end point / load balancer.
+
+Run `Invoke-Pester -Output Detailed` or run the tests in `/e2e.tests.ps1` using VS Code. 
 
 Expected output:
 
@@ -48,5 +56,7 @@ Describing TestTechApp with database seed data
   - Currently ACS has -EnableAdmin
   - Postgres is using the default username and pwd
   - Network firewall and access not configured yet (using basic not standard AKS sku)
+- Describe monitoring considerations
+  - Currently only out-of-the-box Azure monitoring, App Insights / Azure Monitor alerts have not been configured.
 - Describe performance considerations
   - Currently defaults to single node with one pod, scale properties not configured
