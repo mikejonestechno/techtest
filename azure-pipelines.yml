@@ -1,0 +1,95 @@
+# Deploy to Azure Kubernetes Service
+# Build and push image to Azure Container Registry; Deploy to Azure Kubernetes Service
+# https://docs.microsoft.com/azure/devops/pipelines/languages/docker
+
+trigger:
+- master
+
+resources:
+- repo: self
+
+variables:
+
+  # Container registry service connection established during pipeline creation
+  dockerRegistryServiceConnection: 'acrTechTest3b' #'e8d8f4fe-9b9d-4e27-9226-5315aa008ac8'
+  kubernetesServiceConnection: 'techtest-aksTechTest3-test-1595160000983'
+  imageRepository: 'techtestapp'
+  containerRegistry: 'acrtechtest3.azurecr.io'
+  dockerfilePath: '**/Dockerfile'
+  tag: '$(Build.BuildId)'
+  imagePullSecret: 'acrtechtest3db85-auth'
+
+  # Agent VM image name
+  vmImageName: 'ubuntu-latest'
+  
+
+stages:
+- stage: Build
+  displayName: Build stage
+  jobs:  
+  - job: Build
+    displayName: Build
+    pool:
+      vmImage: $(vmImageName)
+    steps:
+    - task: Docker@2
+      displayName: Build and push an image to container registry
+      inputs:
+        command: buildAndPush
+        repository: $(imageRepository)
+        dockerfile: $(dockerfilePath)
+        containerRegistry: $(dockerRegistryServiceConnection)
+        tags: |
+          $(tag)
+          
+    - upload: manifests
+      artifact: manifests
+
+- stage: Deploy
+  displayName: Deploy stage
+  dependsOn: Build
+
+  jobs:
+  - deployment: Deploy
+    displayName: Deploy
+    pool:
+      vmImage: $(vmImageName)
+    environment: 'techtest-test'
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - task: KubernetesManifest@0
+            displayName: Create imagePullSecret
+            inputs:
+              action: createSecret
+              secretName: $(imagePullSecret)
+              dockerRegistryEndpoint: $(dockerRegistryServiceConnection)
+              kubernetesServiceConnection: $(kubernetesServiceConnection)
+              
+          - task: KubernetesManifest@0
+            displayName: Deploy Postgres to Kubernetes cluster
+            inputs:
+              action: deploy
+              kubernetesServiceConnection: $(kubernetesServiceConnection)
+              namespace: test
+              manifests: |
+                $(Pipeline.Workspace)/manifests/postgres-config.yml  
+                $(Pipeline.Workspace)/manifests/postgres-volumes.yml
+                $(Pipeline.Workspace)/manifests/postgres-service.yml
+                $(Pipeline.Workspace)/manifests/postgres-deployment.yml
+
+          - task: KubernetesManifest@0
+            displayName: Deploy App to Kubernetes cluster
+            inputs:
+              action: deploy
+              kubernetesServiceConnection: $(kubernetesServiceConnection)
+              namespace: test
+              manifests: |
+                $(Pipeline.Workspace)/manifests/app-deployment.yml
+                $(Pipeline.Workspace)/manifests/app-service.yml
+              imagePullSecrets: |
+                $(imagePullSecret)
+              containers: |
+                $(containerRegistry)/$(imageRepository):$(tag)
+
