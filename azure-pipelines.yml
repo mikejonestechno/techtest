@@ -48,10 +48,13 @@ stages:
       inputs:
         targetType: inline
         script: |
-          ls *.config -rec | %{ $f=$_; (gc $f.PSPath) | %{ $_ -replace "image: $(imageRepository)", "image: $(containerRegistry)/$(imageRepository)" } | sc $f.PSPath }
+          ls $(Pipeline.Workspace)/manifests/app*.yml | %{ $f=$_; (gc $f.PSPath) | %{ $_ -replace "image: $(imageRepository)", "image: $(containerRegistry)/$(imageRepository)" } | sc $f.PSPath }
 
-    - upload: manifests
-      artifact: manifests
+    - task: PublishPipelineArtifact@1
+      displayName: Publish manifest artifacts
+      inputs: 
+        targetPath: manifests
+
 
 - stage: Deploy
   displayName: Deploy stage
