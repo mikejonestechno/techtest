@@ -53,7 +53,7 @@ stages:
       inputs:
         targetType: inline
         script: |
-          ls $(Build.SourcesDirectory)/manifests/app*.yml | %{ $f=$_; (gc $f.FullName) | %{ $_ -replace "image: $(imageRepository)", "image: $(containerRegistry)/$(imageRepository)" } | Set-Content $f.FullName }
+          Get-ChildItem $(Build.SourcesDirectory)/manifests/app*.yml | %{ $f=$_; (Get-Content $f.FullName) | %{ $_ -replace "image: $(imageRepository)", "image: $(containerRegistry)/$(imageRepository)" } | Set-Content $f.FullName }
 
     - task: PublishPipelineArtifact@1
       displayName: Publish manifest artifacts
