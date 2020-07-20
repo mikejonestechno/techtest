@@ -46,3 +46,19 @@ The automatically generated azure-pipelines.yml itself is missing the mandatory 
 
 > I guess Microsoft are moving too fast to keep their automated devops generation up to date. Too bad, it used to (almost) be a one click setup. :(
 
+## AKS Storage Volumes
+
+The postgres 'local' persistent volumes need to me modified to Azure Disk or Azure Files. 
+
+I initially used Azure Files because Azure Disk uses Access Mode 'ReadWriteOnce' and is only available to a single pod in AKS. 
+
+However I encountered issue reported below that the postgres pod is denied permission to the Azure File volume.
+ https://github.com/Azure/AKS/issues/225
+
+ ```
+ could not change permissions of directory "/var/lib/postgresql/data": Operation not permitted
+ ```
+
+As interim solution I used Azure Disk in order to get postgres deployed, but it means the persistent volume is only available to a single pod. Will need to explore alternative options later.
+
+
