@@ -45,15 +45,16 @@ stages:
 
     - task: PowerShell@2
       displayName: Update manifests with ACR name
-      targetType: inline
-      script: |
-        $files = Get-ChildItem $(Pipeline.Workspace)/manifests app*.yml | 
-        foreach ($file in $files)
-        {
-            (Get-Content $file.PSPath) |
-            Foreach-Object { $_ -replace "image: $(imageRepository)", "image: $(containerRegistry)/$(imageRepository)" } |
-            Set-Content $file.PSPath
-        }
+      inputs:
+        targetType: inline
+        script: |
+          $files = Get-ChildItem $(Pipeline.Workspace)/manifests app*.yml | 
+          foreach ($file in $files)
+          {
+              (Get-Content $file.PSPath) |
+              Foreach-Object { $_ -replace "image: $(imageRepository)", "image: $(containerRegistry)/$(imageRepository)" } |
+              Set-Content $file.PSPath
+          }
 
     - upload: manifests
       artifact: manifests
