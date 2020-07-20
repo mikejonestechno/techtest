@@ -12,7 +12,7 @@ Ideally I would collaborate with the deveopment team to extend the existing Circ
 
 A GitHub account, an Azure account, and an Azure DevOps account.
 
-## Initial Setup
+## Initial Automated Setup
 
 I used PowerShell Core and the Az module for initial setup. 
 
@@ -26,17 +26,23 @@ $acr = New-AzContainerRegistry -ResourceGroupName $rgName -Name "acr$rgName" -En
 $aks = New-AzAks -ResourceGroupName $rgName -Name "aks$rgname" -NodeCount 1
 ```
 
-I logged in to Azure DevOps and added a new pipeline for this repo. 
+I logged in to Azure DevOps and added a new pipeline for this *freshly cloned* repo (before any containers or yml files were checked in). 
 
 Azure Pipeline automatically built the app container and published it to the container registry.
 
-The original manifests that were automatically generated when the Github repo was added to an Azure Pipeline failed because they default to an out of date schema version :(
+Azure Pipeline automatically generated kubernetes manifests and attempted to deploy to AKS cluster however the automatically generated manifests failed because they default to an out of date schema version :(
 
 ```
 Error: no matches for kind "Deployment" in version "apps/v1beta1"
 ```
 
+I put this branch on hold while creating replacement manifest .yml files on separate pull requests. 
+
 ## Updated Kubenetes Manifests
 
-I replaced the app .yml files on separate pull requests to include the required postgres container and the 'serve' or 'updatedb' arguments.
+Having added new manifests that include the required postgres container and include the 'serve' or 'updatedb' arguments, I returned to this branch to update the automated deployment.
+
+The automatically generated azure-pipelines.yml itself is missing the mandatory kubernetesServiceConnection property that is required on the current version of the Kubernetes manifest task. 
+
+> I guess Microsoft are moving too fast to keep their automated devops generation up to date. Too bad, it used to (almost) be a one click setup. :(
 

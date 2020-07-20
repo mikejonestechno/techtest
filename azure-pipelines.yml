@@ -68,7 +68,19 @@ stages:
               kubernetesServiceConnection: $(kubernetesServiceConnection)
               
           - task: KubernetesManifest@0
-            displayName: Deploy to Kubernetes cluster
+            displayName: Deploy Postgres to Kubernetes cluster
+            inputs:
+              action: deploy
+              kubernetesServiceConnection: $(kubernetesServiceConnection)
+              namespace: test
+              manifests: |
+                $(Pipeline.Workspace)/manifests/postgres-config.yml  
+                $(Pipeline.Workspace)/manifests/postgres-volumes.yml
+                $(Pipeline.Workspace)/manifests/postgres-service.yml
+                $(Pipeline.Workspace)/manifests/postgres-deployment.yml
+
+          - task: KubernetesManifest@0
+            displayName: Deploy App to Kubernetes cluster
             inputs:
               action: deploy
               kubernetesServiceConnection: $(kubernetesServiceConnection)
