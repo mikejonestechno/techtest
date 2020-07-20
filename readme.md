@@ -94,11 +94,7 @@ Go to the Azure DevOps build pipelines page `https://dev.azure.com/<myaccount>/<
 
 Create a pipeline, and select this GitHub repo. 
 
-Save and run the pipeline. Initial run will fail as the pipeline environment namespace 'test' does not exist.
-
-### Azure Pipeline Environments
-
-
+Save and run the pipeline. 
 
 ## Tests
 
