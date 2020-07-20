@@ -43,12 +43,17 @@ stages:
         tags: |
           $(tag)
 
+  - job: Package
+    displayName: Package manifests
+    pool:
+      vmImage: $(vmImageName)
+    steps:
     - task: PowerShell@2
       displayName: Update manifests with ACR name
       inputs:
         targetType: inline
         script: |
-          ls $(Pipeline.Workspace)/manifests/app*.yml | %{ $f=$_; (gc $f.PSPath) | %{ $_ -replace "image: $(imageRepository)", "image: $(containerRegistry)/$(imageRepository)" } | sc $f.PSPath }
+          ls $(Build.SourcesDirectory)/manifests/app*.yml | %{ $f=$_; (gc $f.PSPath) | %{ $_ -replace "image: $(imageRepository)", "image: $(containerRegistry)/$(imageRepository)" } | sc $f.PSPath }
 
     - task: PublishPipelineArtifact@1
       displayName: Publish manifest artifacts
