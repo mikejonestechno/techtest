@@ -42,7 +42,18 @@ stages:
         containerRegistry: $(dockerRegistryServiceConnection)
         tags: |
           $(tag)
-          
+
+    - task: PowerShell@2
+      displayName: Update manifests with ACR name
+      script: |
+        $files = Get-ChildItem $(Pipeline.Workspace)/manifests app*.yml | 
+        foreach ($file in $files)
+        {
+            (Get-Content $file.PSPath) |
+            Foreach-Object { $_ -replace "image: $(imageRepository)", "image: $(containerRegistry)/$(imageRepository)" } |
+            Set-Content $file.PSPath
+        }
+
     - upload: manifests
       artifact: manifests
 

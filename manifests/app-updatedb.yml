@@ -14,6 +14,6 @@ spec:
     spec:
       containers:
         - name: techtestupdatedb
-          image: acrtechtest4.azurecr.io/techtestapp:latest
+          image: techtestapp:latest
           args:
             - updatedb
