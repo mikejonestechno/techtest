@@ -59,6 +59,7 @@ stages:
       displayName: Publish manifest artifacts
       inputs: 
         targetPath: manifests
+        artifactName: 'manifests'
 
 
 - stage: Deploy
@@ -75,6 +76,11 @@ stages:
       runOnce:
         deploy:
           steps:
+          - task: DownloadPipelineArtifact@2
+            inputs:
+              artifact: 'manifests'
+              path: $(Pipeline.Workspace)
+              
           - task: KubernetesManifest@0
             displayName: Create imagePullSecret
             inputs:
