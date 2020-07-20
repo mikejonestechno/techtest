@@ -60,6 +60,16 @@ Login to Azure Devops `https://dev.azure.com/<myaccount>`.
 
 Create a new Azure DevOps project using the '+ New Project' button top right of screen. Accept the default values for Git version control and Work Item process.
 
+Go to Pipelines > Environments.
+
+Create a new environment named 'TechTest-test' (this will be the test environment rather than -prod environment).
+
+Select the Kubernetes resource, and select your 'aksTechTest' resource created above.
+
+Create a new namespace called 'test' and click 'Validate and create'.
+
+This creates an Azure DevOps environment and namespace that can be isolated from the future production cluster.
+
 Go to project settings `https://dev.azure.com/<myaccount>/<myproject>/_settings/`.
 
 Select 'Service connections' under the 'Pipelines' heading.
@@ -74,7 +84,7 @@ Create a seconds service connection, selecting the 'Kubernetes' type and click '
 
 Set the Authentication Method = 'Azure Subscription' and select your 'aksTechTest' resource created above.
 
-Select the 'default' namespace, name this service connection 'AKSTechTest' and Save the connection.
+Select the 'test' namespace, name this service connection 'AKSTechTest-test' and Save the connection.
 
 ### Azure Pipeline
 
@@ -84,7 +94,11 @@ Go to the Azure DevOps build pipelines page `https://dev.azure.com/<myaccount>/<
 
 Create a pipeline, and select this GitHub repo. 
 
-Save and run the pipeline.
+Save and run the pipeline. Initial run will fail as the pipeline environment namespace 'test' does not exist.
+
+### Azure Pipeline Environments
+
+
 
 ## Tests
 

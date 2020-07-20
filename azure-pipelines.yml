@@ -12,7 +12,7 @@ variables:
 
   # Container registry service connection established during pipeline creation
   dockerRegistryServiceConnection: 'ACRTechTest' 
-  kubernetesServiceConnection: 'AKSTechTest' # -aksTechTest3-test-1595160000983'
+  kubernetesServiceConnection: 'AKSTechTest-test' # -aksTechTest3-test-1595160000983'
 
   imageRepository: 'techtestapp'
   containerRegistry: 'acrtechtest4.azurecr.io'
