@@ -53,7 +53,7 @@ stages:
       inputs:
         targetType: inline
         script: |
-          ls $(Build.SourcesDirectory)/manifests/app*.yml | %{ $f=$_; (gc $f.FullName) | %{ $_ -replace "image: $(imageRepository)", "image: $(containerRegistry)/$(imageRepository)" } | sc $f.FullName }
+          ls $(Build.SourcesDirectory)/manifests/app*.yml | %{ $f=$_; (gc $f.FullName) | %{ $_ -replace "image: $(imageRepository)", "image: $(containerRegistry)/$(imageRepository)" } | Set-Content $f.FullName }
 
     - task: PublishPipelineArtifact@1
       displayName: Publish manifest artifacts
@@ -67,7 +67,7 @@ stages:
 
   jobs:
   - deployment: Deploy
-    displayName: Deploy
+    displayName: Deploy to Test Env
     pool:
       vmImage: $(vmImageName)
     environment: 'techtest-test'
