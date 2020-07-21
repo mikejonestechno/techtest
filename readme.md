@@ -26,6 +26,9 @@ I have stopped making further changes to the solution that could make the initia
 
 The next sections describe some of the architecture decisions in this solution design.
 
+![Azure pipeline](/readme-pipeline.png)
+![Azure pipeline](/readme-environment.png)
+
 ### Kubernetes vs Azure App Service and Azure Postgres Database
 
 Given the source repo already contains a `Dockerfile`, and existing documentation contains references that this solution was designed to be containerized, the deployment uses Docker and Kubernetes. Teams are far more likely to be highly effective when using tools and services they are already familiar with.
@@ -195,13 +198,17 @@ Create a pipeline, and select this GitHub repo.
 
 Save and run the pipeline. This will trigger a build and deployment to the Kubernetes namespace.
 
+The initial deployment will take around 3 minutes and the cluster external IP is shown in at the bottom of the deploy log.
+
+![external ip](readme-ip.png)
+
 ## Tests
 
 After a successful deployment, use PowerShell Core to run some basic deployment tests.
 
 Install PowerShell Core and `Install-Module -Name Pester -Scope CurrentUser`.
 
-Edit `e2e.tests.ps1` and set the $apphost variable to the IP of the app end point / load balancer.
+Edit `e2e.tests.ps1` and set the $apphost variable to the external IP.
 
 Run `Invoke-Pester -Output Detailed` or run the tests in `/e2e.tests.ps1` using VS Code. 
 
@@ -215,14 +222,12 @@ Describing TestTechApp with database seed data
 
 ## Next Steps
 
-- Update all references for a clean install in new subscription / devops project
 - Describe architecture considerations
   - Currently one Azure Devops environment, need discussion with team about use of dev/test environments
 - Describe security considerations
-  - Currently ACS has -EnableAdmin
-  - Postgres is using the default username and pwd
+  - Postgres is still using the default username and pwd
   - Network firewall and access not configured yet (using basic not standard AKS sku)
 - Describe monitoring considerations
-  - Currently only out-of-the-box Azure monitoring, App Insights / Azure Monitor alerts have not been configured.
+  - Currently only out-of-the-box basic monitoring. Log Analytics is included in the ARM template but configuration with AKS, and monitor alerts have not been configured.
 - Describe performance considerations
-  - Currently defaults to single node with one pod, scale properties not configured
+  - Currently defaults to single node with one pod, scale properties not configured.
