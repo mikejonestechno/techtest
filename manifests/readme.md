@@ -29,8 +29,43 @@ These still use hardcoded references to an Azure Kubernetes Service that need pa
 - app-service.yml
 - app-deployment.yml
 - app-updatedb.yml (once off instance to recreate database and seed data)
+- app-autoscale.yml
 
-The deployment manifest can be modified to include customised horizontal pod scaling under the behaviour section of the spec:
+## Auto scale pods
+
+The autoscale manifest can be modified to include customised horizontal pod scaling under the behaviour section of the spec:
+
+However there is currently an issue with the default AKS autoscale metrics server install.
+https://github.com/Azure/AKS/issues/318
+
+I attempted manually applying the metrics server but the autoscale still fails.
+
+`kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/download/v0.3.6/components.yaml`
+
+It may be possible to manually delete and reinstall metrics server components to AKS but I havent found working solution for a new clean AKS install yet.
+
+The current CPU metrics are not accessible to the hpa service. See bottom of describe section:
+
+``` bash
+> kubectl get hpa -n test 
+NAME              REFERENCE                TARGETS         MINPODS   MAXPODS   REPLICAS   AGE
+techtestapp-hpa   Deployment/techtestapp   <unknown>/80%   1         10        3          23m
+
+> kubectl describe hpa -n test
+Conditions:
+  Type           Status  Reason                   Message
+  ----           ------  ------                   -------
+  AbleToScale    True    SucceededGetScale        the HPA controller was able to get the target's current scale
+  ScalingActive  False   FailedGetResourceMetric  the HPA was unable to compute the replica count: unable to get metrics for resource cpu: no metrics returned from resource metrics API
+Events:
+  Type     Reason                        Age                    From                       Message
+  ----     ------                        ----                   ----                       -------
+  Warning  FailedComputeMetricsReplicas  22m (x19 over 26m)     horizontal-pod-autoscaler  invalid metrics (1 invalid out of 1), first error is: failed to get cpu utilization: missing request for cpu
+  Warning  FailedGetResourceMetric       6m54s (x74 over 26m)   horizontal-pod-autoscaler  missing request for cpu
+  Warning  FailedGetResourceMetric       2m5s (x15 over 8m11s)  horizontal-pod-autoscaler  unable to get metrics for resource cpu: no metrics returned from resource metrics API
+```
+
+Sample custom autoscale policy (for when a solution to above is found):
 
 ```
 behavior:

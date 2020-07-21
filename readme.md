@@ -62,7 +62,7 @@ I have selected Azure Pipelines for the intial automated deployment, but this ne
 
 ## Known Issues
 
-The solution does not contain any automated tests. Automated deployments will result in untested potentially buggy code being pushed to a production environment. A basic end to end deployment test has been added in order to test the health check, and test seed data appears in the application. Test strategy and approach needs to be discussed with the development team before progressing further.
+The original solution does not contain any automated tests. Automated deployments will result in untested potentially buggy code being pushed to a production environment. A basic end to end deployment test has been added in order to test the health check, and test seed data appears in the application. Test strategy and approach needs to be discussed with the development team before progressing further.
 
 The Azure Kubernetes Service extension 'Local Process' (previously known as Dev Spaces) allows a remote process debugging experience as if running a local Kubernetes instance. The local process feature is currently in public preview and has not been configured for the solution yet. Developer and Tester experience should be discussed with the team.
 https://code.visualstudio.com/docs/containers/local-process-kubernetes
@@ -73,6 +73,8 @@ The AKS Deployment Center feature and AKS Policies feature are also in public pr
 The current Kubernetes persistent volume uses Azure Disks and postgres is thus restricted to a single postgres pod. The alternative Azure Files volumes support the Kubernetes ReadWriteMany access mode however further work is needed to workaround the [postgres permission setup issue](/manifests/readme.md#AKSStorageVolumes) with Azure Files. 
 
 Further, the use of AKS node pools to span multiple Availability Zones will make the solution highly available in event of an entire Azure region being unavailable. However *AKS Availability Zones are not yet supported in Australia region*. The existing solution is only robust with a single Azure zone. Alternatives are to consider hosting in the Southeast Asia or Japan East regions.
+
+The Kubernetes horizontal pod autoscale failed to work with the default Kubernetes metrics server on a new AKS cluster. The [autoscaler is unable to get metrics for the CPU resource](/manifests/readme#AutoScalePods). This appears to be a common issue that needs further investigation.
 
 Azure Monitor Insights, Azure Alerts and Azure Log Analytics have not been configured yet. These require a Log Analytics workspace and can easily be added later after validation of the solution architecture.
 
@@ -85,7 +87,7 @@ The current Azure pipeline only has one deploy stage to a test environment and n
 - Recreate ACS with Premium SKU (at increased cost) and update ARM template to modify ACS network configuration to deny public access and create private end points.
 - Consider replacing Azure Devops service connections to ACS and AKS with custom Managed Identities with Azure role based access.
 - Set up AKS in a Standard or Premium SKU and update ARM template to add network firewall rules.
-- Replace use of default postgres user/password and store the password either as a Kubernetes secret or Azure Keyvault.
+- Investigate and resolve the autoscale issue with the AKS metrics server.
 - Consider AKS HA availability in other regions to use multiple node pools https://docs.microsoft.com/en-us/azure/aks/availability-zones
 - Add the automated test to the pipeline by passing the public IP as an environment variable to a PowerShell task.
 - Consider moving Azure Container Registry and Log Analytics to a shared resource group with other applications to reduce costs.
@@ -227,9 +229,9 @@ Describing TestTechApp with database seed data
 - Describe architecture considerations
   - Currently one Azure Devops environment, need discussion with team about use of dev/test environments
 - Describe security considerations
-  - Postgres is still using the default username and pwd
+  - Replace use of default postgres user/password and store the password either as a Kubernetes secret or Azure Keyvault. Yep still not done this yet. :(
   - Network firewall and access not configured yet (using basic not standard AKS sku)
 - Describe monitoring considerations
   - Currently only out-of-the-box basic monitoring. Log Analytics is included in the ARM template but configuration with AKS, and monitor alerts have not been configured.
 - Describe performance considerations
-  - Currently defaults to single node with one pod, scale properties not configured.
+  - Currently defaults to single node with one pod, autoscale issue needs further investigation.
