@@ -1,0 +1,137 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "AzureContainerRegistryName": {
+            "defaultValue": "acrTechTest",
+            "type": "String"
+        },
+        "AzureKubernetesServiceName": {
+            "defaultValue": "aksTechTest",
+            "type": "String"
+        },
+        "AKSServicePrincipalClientId": {
+            "metadata": {
+                "description": "Service Principal Client ID for AKS"
+            },
+            "type": "securestring"
+        },
+        "AKSServicePrincipalClientSecret": {
+            "metadata": {
+                "description": "Service Principal Client Secret"
+            },
+            "type": "securestring"
+        },
+        "LogAnalyticsName": {
+            "defaultValue": "logsTechTest",
+            "type": "String"
+        },
+        "location": {
+            "type": "string",
+            "defaultValue": "[resourceGroup().location]",
+            "metadata": {
+                "description": "The location of the resources (default = Resource Group location)."
+            }
+        }
+    },
+    "variables": {
+    },
+    "resources": [
+        {
+            "type": "Microsoft.ContainerRegistry/registries",
+            "apiVersion": "2019-12-01-preview",
+            "name": "[parameters('AzureContainerRegistryName')]",
+            "location": "[parameters('location')]",
+            "sku": {
+                "name": "Basic",
+                "tier": "Basic"
+            },
+            "properties": {
+                "adminUserEnabled": false
+            }
+        },
+        {
+            "type": "microsoft.operationalinsights/workspaces",
+            "apiVersion": "2020-03-01-preview",
+            "name": "[parameters('LogAnalyticsName')]",
+            "location": "[parameters('location')]",
+            "properties": {
+                "sku": {
+                    "name": "pergb2018"
+                },
+                "retentionInDays": 30
+            }
+        },
+        {
+            "type": "Microsoft.ContainerService/managedClusters",
+            "apiVersion": "2020-03-01",
+            "name": "[parameters('AzureKubernetesServiceName')]",
+            "location": "[parameters('location')]",
+            "dependsOn": [
+                "[resourceId('microsoft.operationalinsights/workspaces', parameters('LogAnalyticsName'))]"
+            ],
+            "sku": {
+                "name": "Basic",
+                "tier": "Free"
+            },
+            "properties": {
+                "kubernetesVersion": "1.16.10",
+                "agentPoolProfiles": [
+                    {
+                        "name": "default",
+                        "count": 2,
+                        "vmSize": "Standard_B2s",
+                        "type": "AvailabilitySet",
+                        "orchestratorVersion": "1.16.10",
+                        "mode": "User",
+                        "osType": "Linux"
+                    }
+                ],
+                "servicePrincipalProfile": {
+                    "clientId": "[parameters('AKSServicePrincipalClientId')]",
+                    "secret": "[parameters('AKSServicePrincipalClientSecret')]"
+                },
+                "addonProfiles": {
+                    "kubedashboard": {
+                        "enabled": true,
+                        "config": {
+                        }
+                    },
+                    "omsagent": {
+                        "enabled": true,
+                        "config": {
+                            "logAnalyticsWorkspaceResourceID": "[resourceId('microsoft.operationalinsights/workspaces', parameters('LogAnalyticsName'))]"
+                        }
+                    }
+                },
+                "nodeResourceGroup": "[concat('MC_AKS_', parameters('AzureKubernetesServiceName'), '_australiaeast')]",
+                "enableRBAC": false,
+                "networkProfile": {
+                    "networkPlugin": "kubenet",
+                    "loadBalancerSku": "Basic",
+                    "podCidr": "10.244.0.0/16",
+                    "serviceCidr": "10.0.0.0/16",
+                    "dnsServiceIP": "10.0.0.10",
+                    "dockerBridgeCidr": "172.17.0.1/16",
+                    "outboundType": "loadBalancer"
+                }
+            }
+        },
+        {
+            "type": "Microsoft.ContainerService/managedClusters/agentPools",
+            "apiVersion": "2020-03-01",
+            "name": "[concat(parameters('AzureKubernetesServiceName'), '/default')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.ContainerService/managedClusters', parameters('AzureKubernetesServiceName'))]"
+            ],
+            "properties": {
+                "count": 2,
+                "vmSize": "Standard_B2s",
+                "type": "AvailabilitySet",
+                "orchestratorVersion": "1.16.10",
+                "mode": "User",
+                "osType": "Linux"
+            }
+        }
+    ]
+}
