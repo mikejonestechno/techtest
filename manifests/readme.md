@@ -21,26 +21,25 @@ I have selected Azure Kubernetes Service for the initial deployment.
 
 ## Planned Architecture
 
-Initially a single node Kubernetes cluster (due to deployment on personal cloud subscription).
+In the steps described below Kubernetes is initially created with a single node pool containing two nodes (due to deployment on personal cloud subscription).
 
-The cluster will contain two pods so that the database and app can be scaled independently.
+The cluster uses two container images so that the database and app can be scaled independently.
 
 - Postgres Pod
 - TechTestApp Pod
 
-## Postgres Pod
+## Postgres Pods
 
 Added below manifests to configure and deploy postgres. Initially hardcoded password but should be replaced with a secret later.
 
 Based on sample templates here https://severalnines.com/database-blog/using-kubernetes-deploy-postgresql
-
 
 - postgres-config.yml
 - postgres-service.yml
 - postgres-volumes.yml
 - postgres-deployment.yml
 
-## App Pod
+## App Pods
 
 Added below manifests to configure and deploy the TechTest app.
 
@@ -49,6 +48,28 @@ These still use hardcoded references to an Azure Kubernetes Service that need pa
 - app-service.yml
 - app-deployment.yml
 - app-updatedb.yml (once off instance to recreate database and seed data)
+
+The deployment manifest can be modified to include customised horizontal pod scaling under the behaviour section of the spec:
+
+```
+behavior:
+  scaleDown:
+    stabilizationWindowSeconds: 300
+    policies:
+    - type: Percent
+      value: 100
+      periodSeconds: 15
+  scaleUp:
+    stabilizationWindowSeconds: 0
+    policies:
+    - type: Percent
+      value: 100
+      periodSeconds: 15
+    - type: Pods
+      value: 4
+      periodSeconds: 15
+    selectPolicy: Max
+```    
 
 ---
 
@@ -105,9 +126,10 @@ Visual Studio Code also has a very useful Kubernetes extension for browsing all 
 
 #### Azure Pipeline Manifests (initial version)
 
-Azure Pipeline automatically generated some Kubernetes manifests when the Github repo was added to an Azure Pipeline. The manifests failed because they default to an out of date schema version :(
+Azure Pipeline automatically generated some Kubernetes manifests when the Github repo was used to create a new Azure Pipeline. The manifests failed because they default to an out of date schema version :(
 
 ```
 error: unable to recognize "/home/vsts/work/_temp/Deployment_mikejonestechnotechtest_1595126652252": no matches for kind "Deployment" in version "apps/v1beta1"
 ```
 
+This was resolved by replacing the manifests with working versions described above.

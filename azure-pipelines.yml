@@ -11,13 +11,14 @@ resources:
 variables:
 
   # Container registry service connection established during pipeline creation
-  dockerRegistryServiceConnection: 'acrTechTest3b' #'e8d8f4fe-9b9d-4e27-9226-5315aa008ac8'
-  kubernetesServiceConnection: 'techtest-aksTechTest3-test-1595160000983'
+  dockerRegistryServiceConnection: 'ACRTechTest' 
+  kubernetesServiceConnection: 'AKSTechTest-test' # -aksTechTest3-test-1595160000983'
+
   imageRepository: 'techtestapp'
-  containerRegistry: 'acrtechtest3.azurecr.io'
+  containerRegistry: 'acrtechtest4.azurecr.io' # look for this acr in manifests and replace tag with this build id
   dockerfilePath: '**/Dockerfile'
   tag: '$(Build.BuildId)'
-  imagePullSecret: 'acrtechtest3db85-auth'
+  imagePullSecret: 'acrtechtest-secret'
 
   # Agent VM image name
   vmImageName: 'ubuntu-latest'
@@ -28,7 +29,7 @@ stages:
   displayName: Build stage
   jobs:  
   - job: Build
-    displayName: Build
+    displayName: Build and publish container
     pool:
       vmImage: $(vmImageName)
     steps:
@@ -41,9 +42,25 @@ stages:
         containerRegistry: $(dockerRegistryServiceConnection)
         tags: |
           $(tag)
-          
-    - upload: manifests
-      artifact: manifests
+
+  - job: Package
+    displayName: Package manifests
+    pool:
+      vmImage: $(vmImageName)
+    steps:
+    - task: PowerShell@2
+      displayName: Update manifests with ACR name
+      inputs:
+        targetType: inline
+        script: |
+          Get-ChildItem $(Build.SourcesDirectory)/manifests/app*.yml | %{ $f=$_; (Get-Content $f.FullName) | %{ $_ -replace "image: $(imageRepository)", "image: $(containerRegistry)/$(imageRepository)" } | Set-Content $f.FullName }
+
+    - task: PublishPipelineArtifact@1
+      displayName: Publish manifest artifacts
+      inputs: 
+        targetPath: manifests
+        artifactName: 'manifests'
+
 
 - stage: Deploy
   displayName: Deploy stage
@@ -51,7 +68,7 @@ stages:
 
   jobs:
   - deployment: Deploy
-    displayName: Deploy
+    displayName: Deploy to Test Env
     pool:
       vmImage: $(vmImageName)
     environment: 'techtest-test'
@@ -59,10 +76,17 @@ stages:
       runOnce:
         deploy:
           steps:
+          - task: DownloadPipelineArtifact@2
+            inputs:
+              artifact: 'manifests'
+              path: $(Pipeline.Workspace)
+              
           - task: KubernetesManifest@0
             displayName: Create imagePullSecret
             inputs:
               action: createSecret
+              namespace: test
+              secretType: dockerRegistry
               secretName: $(imagePullSecret)
               dockerRegistryEndpoint: $(dockerRegistryServiceConnection)
               kubernetesServiceConnection: $(kubernetesServiceConnection)
@@ -78,6 +102,19 @@ stages:
                 $(Pipeline.Workspace)/manifests/postgres-volumes.yml
                 $(Pipeline.Workspace)/manifests/postgres-service.yml
                 $(Pipeline.Workspace)/manifests/postgres-deployment.yml
+
+          - task: KubernetesManifest@0
+            displayName: Run UpdateDB to seed data
+            inputs:
+              action: deploy
+              kubernetesServiceConnection: $(kubernetesServiceConnection)
+              namespace: test
+              manifests: |
+                $(Pipeline.Workspace)/manifests/app-updatedb.yml
+              imagePullSecrets: |
+                $(imagePullSecret)
+              containers: |
+                $(containerRegistry)/$(imageRepository):$(tag)
 
           - task: KubernetesManifest@0
             displayName: Deploy App to Kubernetes cluster

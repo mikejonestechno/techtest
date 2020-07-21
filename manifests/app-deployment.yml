@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: techtestapp
 spec:
-  replicas: 1
+  replicas: 3
   selector:
     matchLabels:
       app: techtestapp
@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: techtestapp
-          image: acru7diizs6a35q6.azurecr.io/techtestapp:0.6.0
+          image: techtestapp:latest
           args:
             - serve
           ports:
