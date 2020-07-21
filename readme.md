@@ -62,7 +62,7 @@ I have selected Azure Pipelines for the intial automated deployment, but this ne
 
 ## Known Issues
 
-The solution does not contain any automated tests. Automated deployments will result in untested potentially buggy code being pushed to a production environment. A basic end to end deployment test has been added in order to test the health check, and test seed data appears in the application. Test strategy and approach needs to be discussed with the development team before progressing further.
+The original solution does not contain any automated tests. Automated deployments will result in untested potentially buggy code being pushed to a production environment. A basic end to end deployment test has been added in order to test the health check, and test seed data appears in the application. Test strategy and approach needs to be discussed with the development team before progressing further.
 
 The Azure Kubernetes Service extension 'Local Process' (previously known as Dev Spaces) allows a remote process debugging experience as if running a local Kubernetes instance. The local process feature is currently in public preview and has not been configured for the solution yet. Developer and Tester experience should be discussed with the team.
 https://code.visualstudio.com/docs/containers/local-process-kubernetes

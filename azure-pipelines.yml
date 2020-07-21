@@ -120,6 +120,7 @@ stages:
               manifests: |
                 $(Pipeline.Workspace)/manifests/app-deployment.yml
                 $(Pipeline.Workspace)/manifests/app-service.yml
+                $(Pipeline.Workspace)/manifests/app-autoscale.yml
               imagePullSecrets: |
                 $(imagePullSecret)
               containers: |

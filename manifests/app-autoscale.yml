@@ -1,0 +1,12 @@
+apiVersion: autoscaling/v1
+kind: HorizontalPodAutoscaler
+metadata:
+  name: techtestapp
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: techtestapp
+  minReplicas: 1
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 50
