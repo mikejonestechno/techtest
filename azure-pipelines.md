@@ -1,13 +1,5 @@
 # Azure DevOps Pipelines
 
-## Azure Pipelines vs CircleCI 
-
-The original source project contains a .circleci config to build and package the app files in zip format and tag a github release.
-
-However I dont have access to the CircleCI account so I selected Azure Pipelines to quickly create an automated deployment. 
-
-Ideally I would collaborate with the deveopment team to extend the existing CircleCI pipeline to package the app to a container registry and deploy to a kubenetes service. This would hopefully improve effectiveness by using existing knowledge the team already has, without increasing complexity by adding another tool.
-
 ## Prerequisites
 
 A GitHub account, an Azure account, and an Azure DevOps account.
@@ -46,20 +38,7 @@ The automatically generated azure-pipelines.yml itself is missing the mandatory 
 
 > I guess Microsoft are moving too fast to keep their automated devops generation up to date. Too bad, it used to (almost) be a one click setup. :(
 
-## AKS Storage Volumes
 
-The postgres 'local' persistent volumes were modified to Azure Disks or Azure Files. 
-
-I initially used Azure Files because Azure Disk uses Access Mode 'ReadWriteOnce' and is only available to a single pod in AKS. 
-
-However I encountered issue reported below that the postgres pod is denied permission to the Azure File volume.
- https://github.com/Azure/AKS/issues/225
-
- ```
- could not change permissions of directory "/var/lib/postgresql/data": Operation not permitted
- ```
-
-As interim solution I used Azure Disk in order to get postgres deployed, but it means the persistent volume is only available to a single pod. Will need to explore alternative options later.
 
 ## Update database and seed data
 

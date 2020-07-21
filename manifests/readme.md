@@ -1,24 +1,5 @@
 # Kubernetes Manifests
 
-## Kubernetes vs Azure App Service and Azure Postgres Database
-
-If a development team has a desire to keep a simplified architecture I would lean towards using managed cloud services so that the development team can focus on building the app, and leave the infrastructure management to the PaaS service providers. 
-
-However, given the source repo already contains a `Dockerfile`, and existing documentation contains references that this solution was designed to be containerized, I recommend using Docker and Kubernetes. Teams are far more likely to be highly effective when using tools and services they are already familiar with.
-
-Despite this recommendation, there are several pros and cons which should be discussed with the development team.
-
-- Security: Consider use of integrated AAD and Managed Identity credentials.
-- Performance: Consider managed services are built on highly optimised IOPS and compute specifically designed for each service.
-- Scalability: Kubernetes and PaaS are both HA and scalable but are managed differently. 
-
-This blog is a good starting point for team discussion 
-(https://www.codersbistro.com/blog/aks-service-fabric-and-app-service-compared/)
-
-If the team does not currently have experience with Docker and Kubernetes I would reconsider the use of Azure App Service and Azure Database. 
-
-I have selected Azure Kubernetes Service for the initial deployment.
-
 ## Planned Architecture
 
 In the steps described below Kubernetes is initially created with a single node pool containing two nodes (due to deployment on personal cloud subscription).
@@ -70,6 +51,21 @@ behavior:
       periodSeconds: 15
     selectPolicy: Max
 ```    
+
+## AKS Storage Volumes
+
+The initial postgres 'local' persistent volumes were modified to use Azure Disks or Azure Files. 
+
+Azure Disks are not highly available, they use the Kubernetes Access Mode 'ReadWriteOnce' and are only available to a single pod in AKS. 
+
+I initially used Azure Files however I encountered the issue reported below that the postgres pod is denied permission to the Azure File volume.
+ (https://github.com/Azure/AKS/issues/225)
+
+ ```
+ could not change permissions of directory "/var/lib/postgresql/data": Operation not permitted
+ ```
+
+As interim solution I used Azure Disk in order to get postgres deployed, but it means the persistent volume is only available to a single pod. Will need to explore alternative options later.
 
 ---
 
