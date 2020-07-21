@@ -6,7 +6,9 @@ This is a simple GTD Golang application that is backed by a Postgres database.
 
 ## Architecture
 
-The application is packaged as a Docker image to Azure Container Registry and deployed to an Azure Kubernetes Service.
+The application is packaged as a Docker image to Azure Container Registry and deployed to an Azure Kubernetes Service using Azure DevOps pipeline.
+
+The initial plan is to manage Azure resource infrastructure and resource configuration through ARM templates, manage Kubernetes configuration through Kubernetes manifest templates and manage deployments through Azure pipeline yml templates.
 
 Caveats - Some features of Azure Kubernetes Service are in public 'preview' state, some features are not supported in the Australia region (yet), and some features are only available on 'Premium' SKU of ACS and AKS at increased cost. 
 
