@@ -6,9 +6,37 @@ This is a simple GTD Golang application that is backed by a Postgres database.
 
 ## Architecture
 
-to be updated
+The application is packaged as a Docker image to Azure Container Registry and deployed to an Azure Kubernetes Service.
 
-Currently defaults to single node and one replica pod (using personal subscription).
+By default Azure Kubernetes Service uses a VM Availability Set to spread the Kubernetes nodes across 2 fault domains and 3 update domains in the selected Azure region making the solution reasonably robust.
+
+The Kubernetes behaviour can be specified to automatically scale up and down across mulitple pods.
+
+The initial deployment will host the application in a 'test' namespace on a 3 replica pod across 2 nodes in a single node pool. After validation of the solution architecture using this basic SKU the cluster may be recreated on a Standard SKU supporting multiple node pools.
+
+An Azure DevOps pipeline is used to automatically build the image and deploy to Kubernetes. A pipeline environment is used to monitor and trace deployment history to the cluster.
+
+## Known Issues
+
+The solution does not contain any automated tests. Automated deployments will result in untested buggy code being pushed to a production environment. A basic end to end deployment test has been added in order to test the health check and seed data appears in the application. Test strategy and approach needs to be discussed with the development team.
+
+The Azure Kubernetes Service extension 'Local Process' (previously known as Dev Spaces) allows a remote process debugging experience as if running a local Kubernetes instance. The local process feature is currently in public preview and has not been configured for the solution yet. Developer and Tester experience should be discussed with the team.
+https://code.visualstudio.com/docs/containers/local-process-kubernetes
+https://docs.microsoft.com/en-us/azure/dev-spaces/
+
+The AKS Deployment Center feature and AKS Policies feature are also in public preview and have not been configured. While the wider Azure Policies are a GA service,the AKS Policies feature is still in preview and requires signing up with Microsoft to register for the preview.
+
+The current Kubernetes persistent volume uses Azure Disks and postgres is thus restricted to a single postgres pod. The alternative Azure Files volumes support the Kubernetes ReadWriteMany access mode however further work is needed to workaround the postgres permission setup issue with Azure Files. 
+
+Azure Monitor Insights, Azure Alerts and Azure Log Analytics have not been configured yet. These require a Log Analytics workspace and can easily be added later after validation of the solution architecture.
+
+
+
+
+Azure DevOps pipeline environments provide basic monitoring and dev/test/prod traceability with the deployments and change commits.
+
+- security
+- other
 
 ## Kubernetes Manifests
 
@@ -41,7 +69,7 @@ https://docs.microsoft.com/en-us/azure/devops/pipelines/library/connect-to-azure
 
 For production the standard or premium skus should be used which support network firewall rules and additional scaling options. 
 
-The following PowerShell Core initiates a single node cluster with smallest VM size available and basic container registry suitable for use of personal subscription account.
+The following PowerShell creates a basic container registry and a Kubernetes node pool containing 2 small VMs suitable for use on a personal subscription account.
 
 The creation of ACR and AKS could be automated via ARM template or other tool such as Terraform. This is a once only setup and needs to be completed before creating the Azure DevOps service connections below.
 
@@ -51,8 +79,10 @@ Connect-AzAccount
 $rgName = 'TechTest'
 New-AzResourceGroup -Name $rgName -Location 'Australia East'
 $acr = New-AzContainerRegistry -ResourceGroupName $rgName -Name "acr$rgName" -EnableAdminUser -Sku Basic
-$aks = New-AzAks -ResourceGroupName $rgName -Name "aks$rgname" -NodeVMSize Standard_B2s -NodeCount 1
+$aks = New-AzAks -ResourceGroupName $rgName -Name "aks$rgname" -NodeVMSize Standard_B2s -NodeCount 2
 ```
+
+> Note: The Container Registry variable in the azure-pipeline.yml must match the ACR server name created above e.g. 'acrtechtest.azurecr.io'.
 
 ### Azure DevOps Project Setup
 
