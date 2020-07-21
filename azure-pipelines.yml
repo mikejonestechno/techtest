@@ -75,12 +75,7 @@ stages:
     strategy:
       runOnce:
         deploy:
-          steps:
-          - task: DownloadPipelineArtifact@2
-            inputs:
-              artifact: 'manifests'
-              path: $(Pipeline.Workspace)
-              
+          steps:             
           - task: KubernetesManifest@0
             displayName: Create imagePullSecret
             inputs:
