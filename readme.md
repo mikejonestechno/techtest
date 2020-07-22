@@ -58,7 +58,7 @@ Ideally I would collaborate with the development team to extend the existing Cir
 
 There are potential differences in CI / CD feature capabilities that should be reviewed, and some have been listed under known issues below.
 
-I have selected Azure Pipelines for the intial automated deployment, but this needs urgent evaluation with the team before expanding further given the existing use of Circle CI.
+I have selected Azure Pipelines for the intial automated deployment, but this needs urgent evaluation with the team before expanding further given the existing use of CircleCI.
 
 ## Known Issues
 
@@ -68,7 +68,7 @@ The Azure Kubernetes Service extension 'Local Process' (previously known as Dev 
 https://code.visualstudio.com/docs/containers/local-process-kubernetes
 https://docs.microsoft.com/en-us/azure/dev-spaces/
 
-The AKS Deployment Center feature and AKS Policies feature are also in public preview and have not been configured. While the wider Azure Policies are a GA service,the AKS Policies feature is still in preview and requires signing up with Microsoft to register for the preview.
+The AKS Deployment Center feature and AKS Policies feature are also in public preview and have not been configured. While the wider Azure Policies are a GA service, the AKS Policies feature is still in preview and requires signing up with Microsoft to register for the preview.
 
 The current Kubernetes persistent volume uses Azure Disks and postgres is thus restricted to a single postgres pod. The alternative Azure Files volumes support the Kubernetes ReadWriteMany access mode however further work is needed to workaround the [postgres permission setup issue](/manifests/readme.md#AKSStorageVolumes) with Azure Files. 
 
@@ -85,10 +85,10 @@ The current Azure pipeline only has one deploy stage to a test environment and n
 ## To Do
 
 - Recreate ACS with Premium SKU (at increased cost) and update ARM template to modify ACS network configuration to deny public access and create private end points.
-- Consider replacing Azure Devops service connections to ACS and AKS with custom Managed Identities with Azure role based access.
 - Set up AKS in a Standard or Premium SKU and update ARM template to add network firewall rules.
-- Investigate and resolve the autoscale issue with the AKS metrics server.
 - Consider AKS HA availability in other regions to use multiple node pools https://docs.microsoft.com/en-us/azure/aks/availability-zones
+- Investigate and resolve the horizontal autoscale issue with the AKS metrics server.
+- Consider replacing Azure Devops service connections to ACS and AKS with custom Managed Identities with Azure role based access.
 - Add the automated test to the pipeline by passing the public IP as an environment variable to a PowerShell task.
 - Consider moving Azure Container Registry and Log Analytics to a shared resource group with other applications to reduce costs.
 - Add Application Insights or other monitoring tools for deeper understanding of the internal web app performance and user experience.
@@ -114,7 +114,9 @@ Follow the steps below to get the solution deployed to a clean Azure subscriptio
 ### Requirements
 
 Azure Account with access to create resource groups and AAD service principals.
+
 Azure DevOps Account with access to create a project and service connections.
+
 PowerShell Core with Az module installed to run setup scripts and run a deployment test. 
 
 ### Azure Setup
@@ -123,8 +125,9 @@ For production the standard or premium skus should be used which support network
 
 For the purpose of the initial deployment on a personal subscription, a basic container registry and a Kubernetes pool with 2 small VMs is created.
 
-Quick start without existing Azure service principal (one is automatically generated).
+Option 1: Quick start without existing Azure service principal (one is automatically generated).
 
+PowerShell Core with Az module installed:
 ``` PowerShell
 Connect-AzAccount
 $rgName = 'TechTest'
@@ -133,17 +136,15 @@ $acr = New-AzContainerRegistry -ResourceGroupName $rgName -Name "acr$rgName" -Sk
 $aks = New-AzAks -ResourceGroupName $rgName -Name "aks$rgname" -NodeVMSize Standard_B2s -NodeCount 2
 ```
 
-Alternatively an Azure Resource Management ARM template can be used to consistently deploy ACS and AKS (if service principal has already been created). 
+Option 2: Alternatively the Azure Resource Management ARM template can be used to consistently deploy ACS and AKS *if service principal has already been created*. 
 
-An ARM template has been created but the multi-step process to create the AAD app registration, service principal, Key Vault, and then populate secrets in to the vault has not been automated in this solution yet.
+The multi-step process to create the AAD app registration, service principal and Key Vault has not been automated yet. While creating a service principal can be [automated with a self-signed certificate](https://docs.microsoft.com/en-us/azure/active-directory/develop/howto-authenticate-service-principal-powershell) organisations usually [create a service principal using Azure portal](https://docs.microsoft.com/en-us/azure/active-directory/develop/howto-create-service-principal-portal#register-an-application-with-azure-ad-and-create-a-service-principal).
 
-While creating a service principal can be [automated with a self-signed certificate](https://docs.microsoft.com/en-us/azure/active-directory/develop/howto-authenticate-service-principal-powershell) it is usually performed by [creating a service principal using Azure portal](https://docs.microsoft.com/en-us/azure/active-directory/develop/howto-create-service-principal-portal#register-an-application-with-azure-ad-and-create-a-service-principal).
+This service principal secret (and optionally Id) should be placed in an Azure KeyVault so they can be referenced by other Azure services without exposing secret values. 
 
-The service principal secret (and optionally Id) should be placed in an Azure KeyVault so they can be referenced by other Azure services without exposing secret values. 
+The below PowerShell will then apply the ARM template and will manually prompt for the service principal id and secret. The ARM templates need further work to parameterize and retreive the values from a KeyVault.
 
-The below PowerShell will apply the ARM template and prompt for the service principal id and secret.
-
-Use -WhatIf parameter on the deployment command to check what resources will be added or modified (behaves similar to a Terraform plan command).
+Use -WhatIf parameter on the deployment command to check what resources will be added or modified (behaves similar to a Terraform plan command). Repeat the last command without -WhatIf to apply the deployment.
 
 ``` PowerShell
 Connect-AzAccount
@@ -158,9 +159,9 @@ $params = @{
 New-AzResourceGroupDeployment @params -TemplateFile azure-arm.json -WhatIf
 ```
 
-Repeat the last command without -WhatIf to apply the deployment.
+Both the ARM template option and the quick start option above create a ACS and AKS resource within a new resource group called 'TechTest'.
 
-> Note: The name of the Container Registry must be globally unique and if a different name is used the Container Registry variable in the azure-pipeline.yml must be updated to match the server name in the steps below e.g. 'acrtechtest.azurecr.io'.
+> Note: The name of the Container Registry must be globally unique and if a different name is used, the Container Registry variable in the azure-pipeline.yml must be updated to match the server name in the steps below e.g. 'acrtechtest.azurecr.io'.
 
 ### Azure DevOps Project Setup
 
@@ -170,21 +171,21 @@ Create a new Azure DevOps project using the '+ New Project' button top right of 
 
 Go to Pipelines > Environments.
 
-Create a new environment named 'TechTest-test' (this will be the test environment rather than -prod environment) and select the Kubernetes resource.
+Create a new environment named 'TechTest-test' (this will be the -test environment rather than -prod environment) and select the Kubernetes resource.
 
 Select your 'aksTechTest' resource created above and create a new namespace called 'test'. Click 'Validate and create'.
 
-This creates an Azure DevOps environment, adds the Kubernetes namespace that can be isolated from the production nodes in future, and creates a project level service connection to the Kubernetes namespace.
+This creates an Azure DevOps environment, adds the Kubernetes namespace, and creates a project level service connection to the Kubernetes namespace.
 
 Go to project settings `https://dev.azure.com/<myaccount>/<myproject>/_settings/`.
 
 Select 'Service connections' under the 'Pipelines' heading.
 
-The Kubernetes service connection to the namespace is displayed. Edit this service connection and change the service connection name to `AKSTechTest-test`.
+The Kubernetes service connection to the namespace is displayed. Edit this service connection and change the service connection name to `AKSTechTest-test` so that it matches the name in the azure-pipelines.yml.
 
-> Note: The service connection names in the azure-pipelines.yml need to match the service connection names for your project.
+> Note: The service connection names in the azure-pipelines.yml must match the service connection names for your project.
 
-Create a new service connection, selecting the 'Docker Registry' type and click 'Next'. 
+Create a new service connection for Docker, selecting the 'Docker Registry' type and click 'Next'. 
 
 Set the Registry Type = 'Azure Container Registry' and select your 'acrTechTest' resource created above.
 
