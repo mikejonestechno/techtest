@@ -15,7 +15,7 @@ variables:
   kubernetesServiceConnection: 'AKSTechTest-test' # -aksTechTest3-test-1595160000983'
 
   imageRepository: 'techtestapp'
-  containerRegistry: 'acrtechtest5.azurecr.io' # look for this acr in manifests and replace tag with this build id
+  containerRegistry: 'acrtechtest.azurecr.io' # look for this acr in manifests and replace tag with this build id
   dockerfilePath: '**/Dockerfile'
   tag: '$(Build.BuildId)'
   imagePullSecret: 'acrtechtest-secret'
